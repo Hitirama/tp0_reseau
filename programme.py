@@ -30,7 +30,7 @@ assert get_int_ip('192.168.1.40') == 3232235816
 get_int_ip('192.168.1.40')
 
 def get_pointed_mask(cidr):
-    get_pointed_ip((2**cidr-1)<<(32-cidr))
+    return get_pointed_ip((2**cidr-1)<<(32-cidr))
 
 assert get_pointed_mask(13) == '255.248.0.0'
 get_pointed_mask(13)
