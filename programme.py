@@ -1,6 +1,6 @@
 def get_pointed_ip(int_ip):
     """
-    Prend en paramètre ip_int, une ip sous forme de nombre et retourne l'ip sous forme décimale pointée
+    Prend en paramètre int_ip, une ip sous forme de nombre et retourne l'ip sous forme décimale pointée
     """
     quotient1 = int_ip//2**8
     reste1 = int_ip%2**8
@@ -67,15 +67,46 @@ assert get_network_address('192.168.1.40/13') == '192.168.0.0'
 get_network_address('192.168.1.40/13')    
     
 
-# def get_nb_ip(pointed_mask):
-#     """
-#     pointed_mask : le masque sous forme d'une adresse ip décimale pointée
-#     retourne le nombre d'adresses ip possibles
-#     """
-#     intip = get_int_ip(pointed_mask)
-#     binip = bin(intip)[2:]
-#     notbin = 
-#     
+def get_nb_ip(pointed_mask):
+    """
+    pointed_mask : le masque sous forme d'une adresse ip décimale pointée
+    retourne le nombre d'adresses ip possibles
+    """
+    return 2**(32-get_int_cidr(pointed_mask)) # retourne le nb d'adresses ip
+
+assert   get_nb_ip('255.255.0.0') == 65536  
+get_nb_ip('255.255.0.0')
+
+def get_nb_hosts(pointed_mask):
+    """
+    pointed_mask : le masque sous forme d'une adresse ip décimale pointée
+    retourne le nombre d'hôtes possibles
+    """
+    return get_nb_ip(pointed_mask)-2
     
     
+assert get_nb_hosts('255.255.0.0') == 65534
+
+def get_summary(ip_cidr):
+    """
+    Retourne un résumé
+    >>> get_summary('192.168.1.20/21')
+
+    Adresse IP : 192.168.1.20/21
+    Masque de sous-réseau : 255.255.248.0
+    Adresse réseau : 192.168.0.0
+    Adresse de broadcast : 192.168.8.0
+    Nombre d'hôtes possibles : 2046
+    Première machine : 192.168.0.1
+    Dernière machine : 192.168.7.255
+    """
+    ip = ip_cidr.split("/")
+    intip = get_int_ip(ip)
+    cidr = int(cidr)
+    
+    adr_ip = f"Adresse ip : {ip}"
+    print(adr_ip)
+    
+    
+get_summary('192.168.1.20/21')    
     
