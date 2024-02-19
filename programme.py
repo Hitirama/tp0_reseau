@@ -87,6 +87,28 @@ def get_nb_hosts(pointed_mask):
     
 assert get_nb_hosts('255.255.0.0') == 65534
 
+def get_first_ip(ip_cidr):
+    """
+    -Prends l'adresse du réseau
+    -le mets en entier
+    -ajoute 1
+    -puis retourne en l'ip correspondant
+    """
+    network_adress = get_network_address(ip_cidr)
+    return get_pointed_ip(get_int_ip(network_adress)+1)
+
+assert get_first_ip('192.168.1.20/21') == "192.168.0.1"
+
+def get_broadcast_ip(ip_cidr):
+    cidr = ip_cidr.split("/")
+    network_adress = get_network_address(ip_cidr)
+    return get_pointed_ip(get_int_ip(network_adress) + int(get_nb_ip(get_pointed_mask)int(cidr)-1))
+
+assert get_broadcast_ip('192.168.1.20/21') == "192.168.1.255"
+
+def get_last_ip(ip_cidr):
+    last_ip = get_broadcast_ip(ip_cidr)+1
+    
 def get_summary(ip_cidr):
     """
     Retourne un résumé
@@ -108,5 +130,5 @@ def get_summary(ip_cidr):
     print(adr_ip)
     
     
-get_summary('192.168.1.20/21')    
-    
+get_summary('192.168.1.20/21')
+get_first_ip('192.168.1.20/21')
