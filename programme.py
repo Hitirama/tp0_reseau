@@ -1,6 +1,7 @@
 def get_pointed_ip(int_ip):
     """
-    Prend en paramètre int_ip, une ip sous forme de nombre et retourne l'ip sous forme décimale pointée
+    Prend en paramètre ip_int, une ip sous forme de nombre et 
+    retourne l'ip sous forme décimale pointée
     """
     quotient1 = int_ip//2**8
     reste1 = int_ip%2**8
@@ -11,12 +12,11 @@ def get_pointed_ip(int_ip):
     reste4 = quotient3%2**8
     return '.'.join([str(reste4), str(reste3), str(reste2), str(reste1)])
 
-assert get_pointed_ip(3232235816) == '192.168.1.40'
-get_pointed_ip(3232235816)
 
 def get_int_ip(pointed_ip):
     """
-    Prend en paramètre ip_pointed, une ip sous forme déciame pointée et retourne l'ip sous forme de nombre
+    Prend en paramètre ip_pointed, une ip sous forme déciame pointée 
+    et retourne l'ip sous forme de nombre
     """
     numbers = [int(elt) for elt in pointed_ip.split('.')]
     number = 0
@@ -26,89 +26,96 @@ def get_int_ip(pointed_ip):
     number += numbers[3]
     return number
 
-assert get_int_ip('192.168.1.40') == 3232235816
-get_int_ip('192.168.1.40')
 
 def get_pointed_mask(cidr):
     """
-    paramètre : ip_cidr une addresse ip décimale pointée avec son cidr exemple 192.168.1.40/24
-    Retourne, sous forme d'adresse IP pointée, l'adresse du réseau
+    retourne le masque sous forme d'une ip décimale pointée. 
+    Si le CIDR n'est pas conforme, retourne une string vide.
     """
-    return get_pointed_ip((2**cidr-1)<<(32-cidr)) # Donne le masque à partir du /CIDR
+    cidr = int(cidr)
+    if cidr <32 :
+        fullcidr = 32 * "1"
+        cutcidr = fullcidr[:cidr] + "0" * (32-cidr)
+        return get_pointed_ip(int(cutcidr, 2))
+    else :
+        return None
 
-assert get_pointed_mask(13) == '255.248.0.0'
-get_pointed_mask(13)
 
 def get_int_cidr(mask):
     """
-    pointed_mask : le masque sous forme d'une adresse ip décimale pointée
-    retourne le nombre d'adresses ip possibles
+    retourne le cidr correspondant au masque sous forme déciamle pointée
     """
-    intmask = get_int_ip(mask) # Transforme le masque en entier
-    return bin(intmask).count("1") # retourne le CIDR en comptant le nombre de 1
+    binmask = (bin(get_int_ip(mask)))[2:]
+    return binmask.count("1")
 
-assert get_int_cidr('255.248.0.0') == 13
-get_int_cidr('255.248.0.0')
 
 def get_network_address(ip_cidr):
     """
     paramètre : ip_cidr une addresse ip décimale pointée avec son cidr exemple 192.168.1.40/24
     Retourne, sous forme d'adresse IP pointée, l'adresse du réseau
     """
-    ip , cidr = ip_cidr.split("/") # divise l'adresse ip du cidr
-    intip = get_int_ip(ip) # transforme en entier l'adresse ip
-    mask = get_pointed_mask(int(cidr)) # transforme en entier le cidr
-    intmask = get_int_ip(mask) # Donne le masque à partir du CIDR
-    network_address = intip & intmask # Fait un "ET" entre le masque et l'adresse ip pour avoir l'ip du réseau
-    return get_pointed_ip(network_address) #retourne l'adresse ip du réseau
+    ip, cidr = ip_cidr.split("/")
+    mask = get_pointed_mask(int(cidr))
+    intip = get_int_ip(ip)
+    intmask = get_int_ip(mask)
+    intnetwork_adress = intip & intmask
+    pointednetwork_adress = get_pointed_ip(intnetwork_adress)
+    return pointednetwork_adress
 
-
-assert get_network_address('192.168.1.40/13') == '192.168.0.0'
-get_network_address('192.168.1.40/13')    
-    
 
 def get_nb_ip(pointed_mask):
     """
     pointed_mask : le masque sous forme d'une adresse ip décimale pointée
     retourne le nombre d'adresses ip possibles
     """
-    return 2**(32-get_int_cidr(pointed_mask)) # retourne le nb d'adresses ip
+    cidr = get_int_cidr(pointed_mask)
+    remainingbytes = (32-int(cidr)) * "1"
+    nb_ip = int(remainingbytes, 2)
+    return nb_ip +1
 
-assert   get_nb_ip('255.255.0.0') == 65536  
-get_nb_ip('255.255.0.0')
 
 def get_nb_hosts(pointed_mask):
     """
     pointed_mask : le masque sous forme d'une adresse ip décimale pointée
     retourne le nombre d'hôtes possibles
     """
-    return get_nb_ip(pointed_mask)-2
-    
-    
-assert get_nb_hosts('255.255.0.0') == 65534
+    nbip = get_nb_ip(pointed_mask)
+    nbhosts = nbip-2
+    return nbhosts
+
 
 def get_first_ip(ip_cidr):
     """
-    -Prends l'adresse du réseau
-    -le mets en entier
-    -ajoute 1
-    -puis retourne en l'ip correspondant
+    ip_cidr une addresse ip décimale pointée avec son cidr exemple 192.168.1.40/24
+    Retourne la première ip utilisable
     """
     network_adress = get_network_address(ip_cidr)
     return get_pointed_ip(get_int_ip(network_adress)+1)
 
-assert get_first_ip('192.168.1.20/21') == "192.168.0.1"
-
-def get_broadcast_ip(ip_cidr):
-    cidr = ip_cidr.split("/")
-    network_adress = get_network_address(ip_cidr)
-    return get_pointed_ip(get_int_ip(network_adress) + int(get_nb_ip(get_pointed_mask)int(cidr)-1))
-
-assert get_broadcast_ip('192.168.1.20/21') == "192.168.1.255"
 
 def get_last_ip(ip_cidr):
-    last_ip = get_broadcast_ip(ip_cidr)+1
-    
+    """
+    ip_cidr une addresse ip décimale pointée avec son cidr exemple 192.168.1.40/24
+    Retourne la dernière ip utilisable
+    """
+    _, cidr = ip_cidr.split("/")
+    network_adress = get_network_address(ip_cidr)
+
+    return get_pointed_ip(get_int_ip(network_adress) + \
+        int(get_nb_ip(get_pointed_mask(int(cidr))) - 2))
+
+
+def get_broadcast_ip(ip_cidr):
+    """
+    ip_cidr une addresse ip décimale pointée avec son cidr exemple 192.168.1.40/24
+    Retourne l'ip de boradcast
+    """
+    _, cidr = ip_cidr.split("/")
+    network_adress = get_network_address(ip_cidr)
+    return get_pointed_ip(get_int_ip(network_adress) + \
+        int(get_nb_ip(get_pointed_mask(int(cidr)))-1))
+
+
 def get_summary(ip_cidr):
     """
     Retourne un résumé
@@ -122,13 +129,22 @@ def get_summary(ip_cidr):
     Première machine : 192.168.0.1
     Dernière machine : 192.168.7.255
     """
-    ip = ip_cidr.split("/")
-    intip = get_int_ip(ip)
-    cidr = int(cidr)
-    
-    adr_ip = f"Adresse ip : {ip}"
-    print(adr_ip)
-    
-    
-get_summary('192.168.1.20/21')
-get_first_ip('192.168.1.20/21')
+    _, cidr = ip_cidr.split("/")
+    print(f"Adresse IP : {ip_cidr}\
+        \nMasque de sous-réseau : {get_pointed_mask(int(cidr))}\
+        \nAdresse réseau : {get_network_address(ip_cidr)}\
+        \nAdresse de broadcast : {get_broadcast_ip(ip_cidr)}\
+        \nNombre d'hôtes possibles :{get_nb_hosts(get_pointed_mask(cidr))}\
+        \nPremière Machine : {get_first_ip(ip_cidr)}\
+        \nDernière Machine : {get_last_ip(ip_cidr)}")
+
+assert get_network_address('192.168.1.40/13') == '192.168.0.0'
+assert get_nb_hosts('255.255.0.0') == 65534
+assert get_nb_ip('255.255.0.0') == 65536
+assert get_network_address('192.168.1.40/8') == '192.0.0.0'
+assert get_network_address('192.168.1.40/13') == '192.168.0.0'
+assert get_int_cidr('255.248.0.0') == 13
+assert get_pointed_mask(131) is None
+assert get_pointed_mask(13) == '255.248.0.0'
+assert get_first_ip('192.168.1.40/13') == '192.168.0.1'
+assert get_last_ip('192.168.0.0/30') == '192.168.0.2'
